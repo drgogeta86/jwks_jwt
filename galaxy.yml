@@ -1,10 +1,11 @@
-namespace: huguesgr
-name: jwks_jwt
+namespace: hyperhcp
+name: jwt_token
 version: 0.1.0
 readme: README.md
 authors:
   - Hugues Granger (@huguesgr)
-description: This module generates a JWKS containing a single JWK, along with a signed JWT which never expires
+  - Fabio Isgrò (@dr_gogeta86)
+description: Based on Hugues Granger's "jwks_jwt"
 license:
   - MIT
 # license_file: ''
@@ -13,6 +14,6 @@ tags:
   - 'jwt'
 dependencies: {}
 repository: https://github.com/huguesgr/jwks_jwt
-issues: hhttps://github.com/huguesgr/jwks_jwt/issues
+issues: https://github.com/huguesgr/jwks_jwt/issues
 build_ignore:
   - 'venv'

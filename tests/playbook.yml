@@ -1,6 +1,32 @@
 ---
 - hosts: test
+  gather_facts: true
+  vars:
+     three_years_seconds: 94608000   # 3 × 365 × 24 × 3600
+
   tasks:
-    - huguesgr.jwks_jwt.generate:
-        issuer: myissuer
-        subject: mysubject
+    - name: Show date 3 years in advance
+      ansible.builtin.set_fact:
+        exp: "{{ (ansible_date_time.epoch | int + three_years_seconds)  }}"
+        iat: "{{ (ansible_date_time.epoch | int )  }}"
+        user: "{{ 'USER1234567' | lower }}"
+        secret: "mysecret"
+
+    - name: Hash a JWT Token
+      hyperhcp.jwt_token.generate:
+        secret: "{{ secret }}"
+        algorithm: "HS256"
+        claims:
+          exp: "{{ exp }}"
+          iat: "{{ iat }}"
+          name: "{{ user | upper }}"
+          email: "{{ user | upper }}@hyperhcp"
+          sub: "{{ user | upper }}@hyperhcp/{{ user | upper  }}"
+          roles: ["system.user"]
+          groups: "[\"{{ user | upper }}\"]"
+          iss: "operator.issuer.io"
+      register: jwt_hash_token
+
+    - debug: var=jwt_hash_token
+
+
