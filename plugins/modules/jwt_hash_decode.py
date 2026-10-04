@@ -27,7 +27,7 @@ options:
         required: true
         type: str
     encoded_hash:
-        description: JTW Claims
+        description: JTW hash
         required: true
         type: str
     algorithm:
