@@ -2,31 +2,53 @@
 - hosts: test
   gather_facts: true
   vars:
-     three_years_seconds: 94608000   # 3 × 365 × 24 × 3600
+    three_years_seconds: 94608000   # 3 × 365 × 24 × 3600
+    user: "USER1234567"
+    secret: "mysecret"
 
   tasks:
     - name: Show date 3 years in advance
       ansible.builtin.set_fact:
-        exp: "{{ (ansible_date_time.epoch | int + three_years_seconds)  }}"
-        iat: "{{ (ansible_date_time.epoch | int )  }}"
-        user: "{{ 'USER1234567' | lower }}"
-        secret: "mysecret"
-
-    - name: Hash a JWT Token
-      hyperhcp.jwt_token.generate:
-        secret: "{{ secret }}"
-        algorithm: "HS256"
-        claims:
-          exp: "{{ exp }}"
-          iat: "{{ iat }}"
-          name: "{{ user | upper }}"
+        claim:
+          exp: "{{ (ansible_date_time.epoch | int + three_years_seconds)  }}"
+          iat: "{{ (ansible_date_time.epoch | int )  }}"
+          user: "{{ user | lower }}"
+          secret: "{{ secret }}"
           email: "{{ user | upper }}@hyperhcp"
-          sub: "{{ user | upper }}@hyperhcp/{{ user | upper  }}"
+          sub: "{{ user | upper }}@hyperhcp/{{ user | upper }}"
           roles: ["system.user"]
           groups: "[\"{{ user | upper }}\"]"
           iss: "operator.issuer.io"
+
+    - name: Hash a JWT Token
+      hyperhcp.jwt_token.jwt_hash_encode:
+        secret: "{{ secret }}"
+        algorithm: "HS256"
+        claims: "{{ claim }}"
       register: jwt_hash_token
 
     - debug: var=jwt_hash_token
 
+    - debug:
+        msg: "{{jwt_hash_token.jwt}}"
 
+    # - fail:
+
+    - name: Decode hashed JWT Token
+      hyperhcp.jwt_token.jwt_hash_decode:
+        secret: "{{ secret }}"
+        algorithm: "HS256"
+        encoded_hash: "{{jwt_hash_token.jwt}}"
+      register: jwt_hash_token_decoded
+
+    - debug: var=jwt_hash_token_decoded
+
+
+    - name: Test Units jwt_decode
+      assert:
+        that:
+          - "{{ jwt_hash_token_decoded['jwt'][item] is defined}}"
+          - "{{ claim[item] is defined}}"
+          - "{{ jwt_hash_token_decoded['jwt'][item] == claim[item] }}"
+      with_items:
+        - "{{ jwt_hash_token_decoded.jwt.keys() }}"

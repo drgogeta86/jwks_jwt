@@ -15,33 +15,25 @@ except ImportError:
 
 DOCUMENTATION = r'''
 ---
-module: generate
+module: jwt_hash_encode
 
 short_description: Generate a JWKS along with a valid JWT
 
 description: This module generates a JWKS containing a single JWK, along with a signed JWT which never expires
 
 options:
-    issuer:
-        description: JWKS issuer
+    secret:
+        description: JTW secret
         required: true
         type: str
-    subject:
-        description: JWKS subject
-        required: true
+    claims:
+        description: JWT Cliams
+        required: false
+        type: dict
+    algorithm:
+        description: JWT algorithm defaulted to HS256
+        required: false
         type: str
-    expiry:
-        description: JWT expiration in days after generation. Token will not expire if this option is not set.
-        required: false
-        type: int
-    public_exponent:
-        description: public exponent parameter for RSA key generation
-        required: false
-        type: int
-    key_size:
-        description: key size parameter for RSA key generation
-        required: false
-        type: int
 
 author:
     - Hugues Granger (@huguesgr)
@@ -49,11 +41,18 @@ author:
 '''
 
 EXAMPLES = r'''
-- name: Test JWKS generation
-  hyperhcp.jwt_token.hash:
-    issuer: myissuer
-    subject: mysubject
-    expiry: 3600
+- name: Hash a JWT Token
+    hyperhcp.jwt_token.jwt_hash_encode:
+    secret: "{{ secret }}"
+    algorithm: "HS256"
+    claims:
+        exp: "300"
+        iat: "{{ (ansible_date_time.epoch | int )  }}"
+        user: "{{ user | lower }}"
+        secret: "mysecret"
+        email: "mailme@mailmenot.to"
+        sub: "mailme@mailmenot.to/user"
+    register: jwt_hash_token
 '''
 
 RETURN = r'''
